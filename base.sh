@@ -5,20 +5,24 @@
 # when deploying using this script.
 #
 #
-#<UDF name="hostname" label="The hostname for the new Linode.">
-# HOSTNAME=
-#
 #<UDF name="fqdn" label="The new Linode's Fully Qualified Domain Name">
 # FQDN=
+
 # This sets the variable $IPADDR to the IP address the new Linode receives.
 IPADDR=$(/sbin/ifconfig eth0 | awk '/inet / { print $2 }' | sed 's/addr://')
+
 # This updates the packages on the system from the distribution repositories.
 yum -y upgrade
+
 # This section sets the hostname.
-echo $HOSTNAME > /etc/hostname
-hostname -F /etc/hostname
+hostnamectl set-hostname $FQDN
 # This section sets the Fully Qualified Domain Name (FQDN) in the hosts file.
-echo $IPADDR $FQDN $HOSTNAME >> /etc/hosts
+# TODO: hostname = first component of FQDN
+echo $IPADDR $FQDN >> /etc/hosts
+
+# Best practice is using UTC timezone and overwriding as needed 
+timedatectl set-timezone UTC
+
 echo "Configuring SWAP space x1 the RAM"
 fallocate -l ${LINODE_RAM}M /var/swap
 chmod 600 /var/swap
